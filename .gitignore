@@ -44,3 +44,6 @@ worker/.wrangler/
 # generated native folders
 /ios
 /android
+
+# JevRouter local decision logs
+.jevrouter/

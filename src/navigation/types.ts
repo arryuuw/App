@@ -3,4 +3,5 @@ export type RootStackParamList = {
   NewEntry: undefined;
   EntryDetail: { entryId: string };
   Settings: undefined;
+  Workspace: undefined;
 };
