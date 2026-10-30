@@ -11,19 +11,20 @@ export interface Agent {
   status: AgentStatus;
   task: string;
   progress: number; // 0-100
+  home: { x: number; y: number }; // desk position, percent of the floor
 }
 
 export interface ActivityItem {
   id: string;
   agentId: string;
   message: string;
-  minutesAgo: number;
+  ts: number; // Date.now() timestamp
 }
 
 export const STAGE_LABELS: Record<PipelineStage, string> = {
-  script: 'Script & Story',
-  production: 'Production',
-  publishing: 'Publishing',
+  script: "Writers' Room",
+  production: 'Edit Bay',
+  publishing: 'Publishing Desk',
 };
 
 export const STATUS_LABELS: Record<AgentStatus, string> = {

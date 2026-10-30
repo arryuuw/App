@@ -9,6 +9,7 @@ export const colors = {
   border: '#2E323C',
   danger: '#E5675A',
   warning: '#E5A05A',
+  highlight: '#45C7C1',
 };
 
 export const spacing = (n: number) => n * 8;

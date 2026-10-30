@@ -2,26 +2,43 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, SafeAreaView } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
-import { AgentDeskCard } from '../components/AgentDeskCard';
+import { StudioFloor } from '../components/StudioFloor';
 import { MOCK_AGENTS, MOCK_ACTIVITY } from '../data/workspaceMock';
-import { STAGE_LABELS } from '../types/workspace';
+import { ActivityItem, STAGE_LABELS } from '../types/workspace';
 import { colors, radius, spacing, font } from '../theme/theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Workspace'>;
 
 export default function WorkspaceScreen({ navigation }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [activity, setActivity] = useState<ActivityItem[]>(MOCK_ACTIVITY);
 
   const agents = MOCK_AGENTS;
   const activeAgents = useMemo(
     () => agents.filter((a) => a.status === 'working' || a.status === 'review'),
     [agents]
   );
-  const workingCount = useMemo(() => agents.filter((a) => a.status === 'working').length, [agents]);
+  const episodeCount = useMemo(() => {
+    const episodes = new Set<string>();
+    agents.forEach((a) => {
+      const match = a.task.match(/ep\.(\d+)/);
+      if (match) episodes.add(match[1]);
+    });
+    return episodes.size;
+  }, [agents]);
+
   const selectedAgent = agents.find((a) => a.id === selectedId) ?? null;
+  const recentActivity = useMemo(
+    () => [...activity].sort((a, b) => b.ts - a.ts),
+    [activity]
+  );
   const selectedActivity = selectedAgent
-    ? MOCK_ACTIVITY.filter((a) => a.agentId === selectedAgent.id)
+    ? recentActivity.filter((a) => a.agentId === selectedAgent.id).slice(0, 3)
     : [];
+
+  function handleWalkEvent(agentId: string, message: string) {
+    setActivity((prev) => [...prev, { id: `${agentId}-${Date.now()}`, agentId, message, ts: Date.now() }]);
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -35,41 +52,49 @@ export default function WorkspaceScreen({ navigation }: Props) {
 
       <ScrollView contentContainerStyle={styles.body}>
         <View style={styles.statsRow}>
-          <Stat label="Agents online" value={`${agents.length}/${agents.length}`} />
-          <Stat label="Working" value={String(workingCount)} />
+          <Stat label="On the floor" value={`${agents.length}/${agents.length}`} />
           <Stat label="Active tasks" value={String(activeAgents.length)} />
+          <Stat label="Episodes in flight" value={String(episodeCount)} />
         </View>
 
-        <Text style={styles.sectionTitle}>Agents</Text>
-        <View style={styles.grid}>
-          {agents.map((agent) => (
-            <AgentDeskCard
-              key={agent.id}
-              agent={agent}
-              selected={agent.id === selectedId}
-              onPress={() => setSelectedId(agent.id === selectedId ? null : agent.id)}
-            />
-          ))}
-        </View>
-
-        {selectedAgent ? (
-          <View style={styles.detailCard}>
-            <Text style={styles.detailTitle}>
-              {selectedAgent.emoji} {selectedAgent.name} · {selectedAgent.role}
-            </Text>
-            <Text style={styles.detailStage}>{STAGE_LABELS[selectedAgent.stage]}</Text>
-            <Text style={styles.detailTask}>{selectedAgent.task}</Text>
-            {selectedActivity.length > 0 ? (
-              <View style={{ marginTop: spacing(1.5) }}>
-                {selectedActivity.map((item) => (
-                  <Text key={item.id} style={styles.activityLine}>
-                    {timeAgo(item.minutesAgo)} — {selectedAgent.name} {item.message}
-                  </Text>
-                ))}
-              </View>
-            ) : null}
+        <View style={styles.floorHeadRow}>
+          <Text style={styles.sectionTitle}>The floor</Text>
+          <View style={styles.legend}>
+            <LegendDot color={colors.primary} label="Working" />
+            <LegendDot color={colors.warning} label="In review" />
+            <LegendDot color={colors.textMuted} label="Idle" />
           </View>
-        ) : null}
+        </View>
+        <StudioFloor
+          agents={agents}
+          selectedId={selectedId}
+          onSelect={(id) => setSelectedId(id === selectedId ? null : id)}
+          onWalkEvent={handleWalkEvent}
+        />
+
+        <Text style={styles.sectionTitle}>Preview</Text>
+        <View style={styles.card}>
+          {selectedAgent ? (
+            <>
+              <Text style={styles.detailTitle}>
+                {selectedAgent.emoji} {selectedAgent.name} · {selectedAgent.role}
+              </Text>
+              <Text style={styles.detailStage}>{STAGE_LABELS[selectedAgent.stage]}</Text>
+              <Text style={styles.detailTask}>{selectedAgent.task}</Text>
+              {selectedActivity.length > 0 ? (
+                <View style={{ marginTop: spacing(1.5) }}>
+                  {selectedActivity.map((item) => (
+                    <Text key={item.id} style={styles.activityLine}>
+                      {timeAgo(item.ts)} — {selectedAgent.name} {item.message}
+                    </Text>
+                  ))}
+                </View>
+              ) : null}
+            </>
+          ) : (
+            <Text style={styles.previewEmpty}>Tap anyone on the floor to see what they're working on.</Text>
+          )}
+        </View>
 
         <Text style={styles.sectionTitle}>Task flow</Text>
         <View style={styles.card}>
@@ -91,18 +116,18 @@ export default function WorkspaceScreen({ navigation }: Props) {
 
         <Text style={styles.sectionTitle}>Live activity</Text>
         <View style={styles.card}>
-          {MOCK_ACTIVITY.map((item, i) => {
+          {recentActivity.slice(0, 8).map((item, i, arr) => {
             const agent = agents.find((a) => a.id === item.agentId);
             return (
               <View
                 key={item.id}
-                style={[styles.activityRow, i < MOCK_ACTIVITY.length - 1 && styles.taskRowDivider]}
+                style={[styles.activityRow, i < arr.length - 1 && styles.taskRowDivider]}
               >
                 <Text style={styles.activityText}>
                   <Text style={styles.activityAgent}>{agent?.name ?? 'Unknown'}</Text>{' '}
                   {item.message}
                 </Text>
-                <Text style={styles.activityTime}>{timeAgo(item.minutesAgo)}</Text>
+                <Text style={styles.activityTime}>{timeAgo(item.ts)}</Text>
               </View>
             );
           })}
@@ -121,7 +146,18 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function timeAgo(minutes: number): string {
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <View style={styles.legendItem}>
+      <View style={[styles.legendDot, { backgroundColor: color }]} />
+      <Text style={styles.legendLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function timeAgo(ts: number): string {
+  const minutes = Math.max(0, Math.round((Date.now() - ts) / 60000));
+  if (minutes < 1) return 'just now';
   if (minutes < 60) return `${minutes}m ago`;
   return `${Math.round(minutes / 60)}h ago`;
 }
@@ -152,6 +188,15 @@ const styles = StyleSheet.create({
   },
   statValue: { color: colors.text, fontSize: font.heading, fontWeight: '700' },
   statLabel: { color: colors.textMuted, fontSize: font.small, marginTop: 2 },
+  floorHeadRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  legend: { flexDirection: 'row', gap: spacing(1.5) },
+  legendItem: { flexDirection: 'row', alignItems: 'center' },
+  legendDot: { width: 6, height: 6, borderRadius: 999, marginRight: 4 },
+  legendLabel: { color: colors.textMuted, fontSize: 11 },
   sectionTitle: {
     color: colors.text,
     fontSize: font.body,
@@ -159,15 +204,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing(1.25),
     marginTop: spacing(1),
   },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  detailCard: {
-    backgroundColor: colors.surfaceAlt,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.primaryMuted,
-    padding: spacing(2),
-    marginBottom: spacing(2),
-  },
+  previewEmpty: { color: colors.textMuted, fontSize: font.small, lineHeight: 18 },
   detailTitle: { color: colors.text, fontSize: font.body, fontWeight: '700' },
   detailStage: { color: colors.primary, fontSize: font.small, marginTop: 2 },
   detailTask: { color: colors.textMuted, fontSize: font.body, marginTop: spacing(1) },
@@ -177,7 +214,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    paddingHorizontal: spacing(2),
+    padding: spacing(2),
     marginBottom: spacing(2),
   },
   taskRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing(1.5) },
