@@ -8,6 +8,7 @@ export const colors = {
   textMuted: '#9A9DA8',
   border: '#2E323C',
   danger: '#E5675A',
+  warning: '#E5A05A',
 };
 
 export const spacing = (n: number) => n * 8;

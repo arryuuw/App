@@ -46,9 +46,14 @@ export default function HomeScreen({ navigation }: Props) {
               : 'Start today’s entry'}
           </Text>
         </View>
-        <Pressable onPress={() => navigation.navigate('Settings')} hitSlop={12}>
-          <Text style={styles.settingsIcon}>⚙️</Text>
-        </Pressable>
+        <View style={styles.headerIcons}>
+          <Pressable onPress={() => navigation.navigate('Workspace')} hitSlop={12}>
+            <Text style={styles.settingsIcon}>🏢</Text>
+          </Pressable>
+          <Pressable onPress={() => navigation.navigate('Settings')} hitSlop={12}>
+            <Text style={styles.settingsIcon}>⚙️</Text>
+          </Pressable>
+        </View>
       </View>
 
       <FlatList
@@ -95,6 +100,7 @@ const styles = StyleSheet.create({
   },
   title: { color: colors.text, fontSize: font.title, fontWeight: '700' },
   subtitle: { color: colors.textMuted, fontSize: font.body, marginTop: 4 },
+  headerIcons: { flexDirection: 'row', gap: spacing(2) },
   settingsIcon: { fontSize: 22, marginTop: 4 },
   listContent: {
     paddingHorizontal: spacing(2.5),

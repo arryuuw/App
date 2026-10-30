@@ -8,6 +8,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import NewEntryScreen from './src/screens/NewEntryScreen';
 import EntryDetailScreen from './src/screens/EntryDetailScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
+import WorkspaceScreen from './src/screens/WorkspaceScreen';
 import { colors } from './src/theme/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -37,6 +38,7 @@ export default function App() {
           />
           <Stack.Screen name="EntryDetail" component={EntryDetailScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="Workspace" component={WorkspaceScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="light" />

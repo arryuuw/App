@@ -1,0 +1,72 @@
+import { ActivityItem, Agent } from '../types/workspace';
+
+export const MOCK_AGENTS: Agent[] = [
+  {
+    id: 'mina',
+    name: 'Mina',
+    role: 'Story Lead',
+    stage: 'script',
+    emoji: '🧠',
+    status: 'working',
+    task: 'Breaking down the ep.12 plot twist',
+    progress: 72,
+  },
+  {
+    id: 'theo',
+    name: 'Theo',
+    role: 'Scriptwriter',
+    stage: 'script',
+    emoji: '✍️',
+    status: 'working',
+    task: 'Drafting dialogue for ep.12 scene 3',
+    progress: 45,
+  },
+  {
+    id: 'ren',
+    name: 'Ren',
+    role: 'Voice Director',
+    stage: 'production',
+    emoji: '🎙️',
+    status: 'review',
+    task: 'Reviewing AI voice takes for ep.11',
+    progress: 90,
+  },
+  {
+    id: 'kai',
+    name: 'Kai',
+    role: 'Video Generator',
+    stage: 'production',
+    emoji: '🎬',
+    status: 'working',
+    task: 'Rendering the ep.11 final cut',
+    progress: 58,
+  },
+  {
+    id: 'ivy',
+    name: 'Ivy',
+    role: 'Thumbnail & Title',
+    stage: 'publishing',
+    emoji: '🖼️',
+    status: 'idle',
+    task: 'Waiting on ep.10 footage',
+    progress: 0,
+  },
+  {
+    id: 'noah',
+    name: 'Noah',
+    role: 'Scheduler & Analyst',
+    stage: 'publishing',
+    emoji: '📊',
+    status: 'working',
+    task: 'Packaging ep.10 upload + performance report',
+    progress: 30,
+  },
+];
+
+export const MOCK_ACTIVITY: ActivityItem[] = [
+  { id: 'a1', agentId: 'theo', message: 'started drafting ep.12 scene 3', minutesAgo: 2 },
+  { id: 'a2', agentId: 'ren', message: 'flagged a voice take for re-record', minutesAgo: 15 },
+  { id: 'a3', agentId: 'kai', message: 'finished rendering ep.11 scene 4', minutesAgo: 32 },
+  { id: 'a4', agentId: 'mina', message: 'completed the plot outline for ep.12', minutesAgo: 61 },
+  { id: 'a5', agentId: 'noah', message: 'scheduled ep.10 for Friday 6pm', minutesAgo: 95 },
+];
